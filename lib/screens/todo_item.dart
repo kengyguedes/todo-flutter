@@ -18,6 +18,8 @@ class _TodoItemState extends State<TodoItem> {
   // List
   Todo _todo;
   int _index;
+  // Key
+  final key = GlobalKey<ScaffoldState>();
   // Controler
   final _tituloController = TextEditingController();
   final _descricaoController = TextEditingController();
@@ -31,28 +33,39 @@ class _TodoItemState extends State<TodoItem> {
     }
   }
 
-  _saveItem() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    var data = preferences.getString('lista');
-    List<Todo> list = [];
+  _saveItem(BuildContext context) async {
+    if(_tituloController.text.isNotEmpty && _descricaoController.text.isNotEmpty){
+      SharedPreferences preferences = await SharedPreferences.getInstance();
+      var data = preferences.getString('lista');
+      List<Todo> list = [];
 
-    if(data != null){
-      var objs = jsonDecode(data) as List;
-      list = objs.map((e) => Todo.fromJson(e)).toList();
-    }
+      if(data != null){
+        var objs = jsonDecode(data) as List;
+        list = objs.map((e) => Todo.fromJson(e)).toList();
+      }
 
-    _todo= new Todo.fromTituloDescricao(_tituloController.text, _descricaoController.text);
-    if(_index != -1){
-      list[_index] = _todo;
-    }else{
-      list.add(_todo);
+      _todo= new Todo.fromTituloDescricao(_tituloController.text, _descricaoController.text);
+      if(_index != -1){
+        list[_index] = _todo;
+      }else{
+        list.add(_todo);
+      }
+      preferences.setString('lista', jsonEncode(list));
+      Navigator.pop(context);
     }
-    preferences.setString('lista', jsonEncode(list));
+    else{
+      key.currentState.showSnackBar(
+        SnackBar(
+          content: Text('Necessário preencher todos os campos para salvar.'),
+        )
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: key,
       appBar: AppBar(
         backgroundColor: Colors.green,
         title: Text('Todo Item'),
@@ -89,7 +102,7 @@ class _TodoItemState extends State<TodoItem> {
                 ),),
                 color: Colors.green,
                 textColor: Colors.white,
-                onPressed: _saveItem,
+                onPressed: () => _saveItem(context),
               )
             ),
           )
