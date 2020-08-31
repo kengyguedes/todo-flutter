@@ -45,6 +45,31 @@ class _TodoListState extends State<TodoList> {
     });
     SharedPreferences.getInstance().then((prefs) => prefs.setString('lista', jsonEncode(list)));
   }
+  
+  _showAlertDialog(BuildContext context, String conteudo, Function confirmFuncion, int index){
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Confirmação'),
+            content: Text(conteudo),
+            actions: [
+              FlatButton(
+                child: Text('Não'),
+                onPressed: () => Navigator.pop(context),
+              ),
+              FlatButton(
+                child: Text('Sim'),
+                onPressed: () {
+                  confirmFuncion(index);
+                  Navigator.pop(context);
+                },
+              )
+            ],
+          );
+        }, 
+    );
+  }
 
 
   @override
@@ -77,12 +102,15 @@ class _TodoListState extends State<TodoList> {
               children: [
                 IconButton(
                     icon: Icon(Icons.clear, color: Colors.red,),
-                    onPressed: () => _removeItem(index),
+                    onPressed: () => _showAlertDialog(context,'Confirma a Exclusão deste item?', _removeItem, index),//_removeItem(index),
                 ),
-                IconButton(
-                    icon: Icon(Icons.check, color: Colors.blue,),
-                    onPressed: () => _doneItem(index),
-                )
+                Visibility(
+                  visible: list[index].status == 'A',
+                  child: IconButton(
+                      icon: Icon(Icons.check, color: Colors.blue,),
+                      onPressed: () => _showAlertDialog(context, 'Confirma a finalização deste item?', _doneItem, index) //_doneItem(index)
+                    ),
+                ),
               ],
             ),
           );
